@@ -1,5 +1,6 @@
 package me.leoko.advancedban.velocity;
 
+import co.schemati.trevor.api.TrevorService;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.Subscribe;
@@ -12,6 +13,7 @@ import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.VersionInfo;
 import me.leoko.advancedban.velocity.listener.ChatListenerVelocity;
 import me.leoko.advancedban.velocity.listener.ConnectionListenerVelocity;
+import me.leoko.advancedban.velocity.listener.PubSubMessageListener;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
@@ -21,7 +23,8 @@ import java.nio.file.Path;
     name = "AdvancedBan",
     version = VersionInfo.VERSION,
     dependencies = {
-        @Dependency(id = "luckperms", optional = true)
+        @Dependency(id = "luckperms", optional = true),
+        @Dependency(id = "trevor", optional = true)
     }
 )
 public class VelocityMain {
@@ -48,6 +51,13 @@ public class VelocityMain {
     server.getEventManager().register(this, new ChatListenerVelocity());
     server.getEventManager().register(this, new ConnectionListenerVelocity());
 
+    if(server.getPluginManager().isLoaded("trevor")) {
+      Universal.setRedis(true);
+      server.getEventManager().register(this, new PubSubMessageListener());
+      TrevorService.getAPI().getDatabase().getIntercom().add("advancedban:main", "advancedban:connection");
+      this.logger.info("Trevor by Schematico found. Hooking in...");
+    }
+
   }
 
   @Subscribe
@@ -58,6 +68,10 @@ public class VelocityMain {
 
   public static VelocityMain get() {
     return velocityMain;
+  }
+
+  public ProxyServer getProxy() {
+    return this.server;
   }
 
 }

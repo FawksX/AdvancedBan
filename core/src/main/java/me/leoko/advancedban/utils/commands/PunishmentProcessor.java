@@ -116,6 +116,9 @@ public class PunishmentProcessor implements Consumer<Command.CommandInput> {
 
     // Checks whether target is exempted from punishment
     private static boolean processExempt(String name, String target, Object sender, PunishmentType type) {
+
+        if(Universal.isRedis()) return false;
+
         MethodInterface mi = Universal.get().getMethods();
         String dataName = name.toLowerCase();
 

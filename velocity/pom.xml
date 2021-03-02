@@ -51,6 +51,13 @@
             <version>1.7.30</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>co.schemti</groupId>
+            <artifactId>trevor</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/trevor-velocity-2.0.1-SNAPSHOT-all.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <build>

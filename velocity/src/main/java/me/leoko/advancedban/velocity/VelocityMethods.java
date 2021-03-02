@@ -1,5 +1,6 @@
 package me.leoko.advancedban.velocity;
 
+import co.schemati.trevor.api.TrevorService;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -17,6 +18,9 @@ import me.leoko.advancedban.manager.UUIDManager;
 import me.leoko.advancedban.utils.Permissionable;
 import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.tabcompletion.TabCompleter;
+import me.leoko.advancedban.velocity.cache.UsernameCache;
+import me.leoko.advancedban.velocity.payload.KickPayload;
+import me.leoko.advancedban.velocity.payload.NotificationPayload;
 import me.leoko.advancedban.velocity.listener.CommandReceiverVelocity;
 import me.leoko.advancedban.velocity.event.PunishmentEvent;
 import me.leoko.advancedban.velocity.event.RevokePunishmentEvent;
@@ -37,6 +41,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class VelocityMethods extends AbstractMethodInterface<ConfigurationNode> {
@@ -194,6 +199,12 @@ public class VelocityMethods extends AbstractMethodInterface<ConfigurationNode> 
 
   @Override
   public boolean isOnline(String name) {
+    if(Universal.isRedis()) {
+          if(UsernameCache.contains(name.toLowerCase())) {
+            return true;
+          }
+          return false;
+      }
     return server.getPlayer(name).isPresent();
   }
 
@@ -204,6 +215,10 @@ public class VelocityMethods extends AbstractMethodInterface<ConfigurationNode> 
 
   @Override
   public void kickPlayer(String player, String reason) {
+    if(Universal.isRedis()) {
+      TrevorService.getAPI().getDatabaseProxy().post("advancedban:main", new KickPayload(player, reason));
+      return;
+    }
     server.getPlayer(player).get().disconnect(LegacyComponentSerializer.legacyAmpersand().deserialize(reason));
   }
 
@@ -365,6 +380,10 @@ public class VelocityMethods extends AbstractMethodInterface<ConfigurationNode> 
 
   @Override
   public void notify(String perm, List<String> notification) {
+    if(Universal.isRedis()) {
+      notification.forEach(str -> TrevorService.getAPI().getDatabaseProxy().post("advancedban:main", new NotificationPayload(perm, str)));
+      return;
+    }
     server.getAllPlayers().forEach(player -> {
         if (player.hasPermission(perm)) {
             notification.forEach(str -> sendMessage(player, str));
