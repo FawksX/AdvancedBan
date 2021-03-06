@@ -22,9 +22,6 @@ public class PubSubMessageListener {
     @Subscribe
     public void onMessageReceive(VelocityNetworkMessageEvent event) {
 
-        System.out.println("NETWORK INTERCOM");
-        System.out.println(event.payload());
-
         if(event.payload() instanceof KickPayload) {
             KickPayload payload = (KickPayload) event.payload();
 
